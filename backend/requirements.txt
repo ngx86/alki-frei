@@ -1,0 +1,6 @@
+Flask==2.0.1
+Flask-SQLAlchemy==2.5.1
+psycopg2-binary==2.9.1
+GeoAlchemy2==0.8.5
+gunicorn==20.1.0
+# Add any other dependencies your backend might need
