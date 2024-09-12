@@ -1,10 +1,15 @@
-from flask import Flask, request, jsonify
+import os
+from flask import Flask, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import ARRAY
 from geoalchemy2 import Geometry
+from flask_cors import CORS
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://username:password@localhost/beerdatabase'
+app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
+CORS(app)  # Enable CORS for all routes
+
+# Use environment variable for database URL
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://username:password@localhost/beerdatabase')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -32,7 +37,15 @@ class Beer(db.Model):
     popularity_score = db.Column(db.Float)
     geolocation = db.Column(Geometry(geometry_type='POINT', srid=4326))
 
-@app.route('/beer', methods=['POST'])
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(app.static_folder + '/' + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/api/beer', methods=['POST'])
 def add_beer():
     data = request.json
     new_beer = Beer(
@@ -62,7 +75,7 @@ def add_beer():
     db.session.commit()
     return jsonify({"message": "Beer added successfully"}), 201
 
-@app.route('/beers', methods=['GET'])
+@app.route('/api/beers', methods=['GET'])
 def get_beers():
     beers = Beer.query.all()
     return jsonify([{
@@ -75,7 +88,7 @@ def get_beers():
         # Add other fields as needed
     } for beer in beers])
 
-@app.route('/beer/<int:id>', methods=['GET'])
+@app.route('/api/beer/<int:id>', methods=['GET'])
 def get_beer(id):
     beer = Beer.query.get_or_404(id)
     return jsonify({
@@ -88,6 +101,15 @@ def get_beer(id):
         # Add other fields as needed
     })
 
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify(error=str(e)), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    return jsonify(error=str(e)), 500
+
 if __name__ == '__main__':
-    db.create_all()
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
