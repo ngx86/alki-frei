@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, ZoomControl, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
+import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import logo from './images/logo.png';
 import pointerIcon from './images/pointer.svg';
 import './App.css';
+import SearchBar from './components/Search/SearchBar';
+import AddBeerForm from './components/Beer/AddBeerForm';
 
 // Fix for default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -43,33 +46,33 @@ function App() {
   const mapRef = useRef();
 
   useEffect(() => {
-    // Load initial beer data
-    const initialBeers = [
-      { name: "Alcohol-Free IPA", type: "IPA", city: "London", establishment: "Bar", latlng: { lat: 51.505, lng: -0.09 } },
-      { name: "Zero Lager", type: "Lager", city: "Manchester", establishment: "Restaurant", latlng: { lat: 53.483, lng: -2.244 } },
-      // Add more initial beers as needed
-    ];
-    setBeers(initialBeers);
+    // Load initial beer data from API
+    const fetchBeers = async () => {
+      try {
+        const response = await axios.get('/api/beers');
+        setBeers(response.data);
+      } catch (error) {
+        console.error('Error fetching beers:', error);
+      }
+    };
+    fetchBeers();
   }, []);
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
-    const searchTermLower = searchTerm.toLowerCase();
-    const filteredBeers = beers.filter(beer => 
-      beer.name.toLowerCase().includes(searchTermLower) ||
-      beer.type.toLowerCase().includes(searchTermLower) ||
-      beer.city.toLowerCase().includes(searchTermLower) ||
-      beer.establishment.toLowerCase().includes(searchTermLower)
-    );
-
-    if (filteredBeers.length > 0) {
-      setSearchResult(`Found ${filteredBeers.length} results`);
-      // Center map on the first result
-      const firstResult = filteredBeers[0];
-      setPosition([firstResult.latlng.lat, firstResult.latlng.lng]);
-      mapRef.current.setView([firstResult.latlng.lat, firstResult.latlng.lng], 13);
-    } else {
-      setSearchResult("No results found");
+    try {
+      const response = await axios.get(`/api/search?q=${searchTerm}`);
+      const searchResults = response.data;
+      setBeers(searchResults);
+      setSearchResult(`Found ${searchResults.length} results`);
+      if (searchResults.length > 0) {
+        const firstResult = searchResults[0];
+        setPosition([firstResult.latlng.lat, firstResult.latlng.lng]);
+        mapRef.current.setView([firstResult.latlng.lat, firstResult.latlng.lng], 13);
+      }
+    } catch (error) {
+      console.error('Error searching beers:', error);
+      setSearchResult("Error searching beers");
     }
   };
 
@@ -77,11 +80,17 @@ function App() {
     setNewBeer({ latlng, name: '', type: '', city: '', establishment: '' });
   };
 
-  const handleSaveBeer = () => {
+  const handleSaveBeer = async () => {
     if (newBeer && newBeer.name && newBeer.type && newBeer.city && newBeer.establishment) {
-      const updatedBeers = [...beers, newBeer];
-      setBeers(updatedBeers);
-      setNewBeer(null);
+      try {
+        const response = await axios.post('/api/beer', newBeer);
+        const updatedBeers = [...beers, response.data.beer];
+        setBeers(updatedBeers);
+        setNewBeer(null);
+      } catch (error) {
+        console.error('Error adding beer:', error);
+        alert('Failed to add beer. Please try again.');
+      }
     }
   };
 
@@ -162,107 +171,18 @@ function App() {
         maxHeight: '80vh',
         overflowY: 'auto',
       }}>
-        <form onSubmit={handleSearch}>
-          <input 
-            type="text" 
-            value={searchTerm} 
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by beer, location, bar..."
-            className="search-input"
-            style={{
-              width: 'calc(100% - 20px)',
-              padding: '10px',
-              marginBottom: '10px',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
-            }}
-          />
-          <button 
-            type="submit"
-            style={{
-              width: '100%',
-              padding: '10px 15px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            Search
-          </button>
-        </form>
+        <SearchBar 
+          searchTerm={searchTerm} 
+          setSearchTerm={setSearchTerm} 
+          handleSearch={handleSearch} 
+        />
         {searchResult && <p>Found: {searchResult}</p>}
         {newBeer && (
-          <div>
-            <h3>Add New Beer</h3>
-            <input
-              type="text"
-              placeholder="Beer Name"
-              value={newBeer.name}
-              onChange={(e) => setNewBeer({...newBeer, name: e.target.value})}
-              style={{
-                width: 'calc(100% - 20px)',
-                padding: '10px',
-                marginBottom: '10px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Beer Type"
-              value={newBeer.type}
-              onChange={(e) => setNewBeer({...newBeer, type: e.target.value})}
-              style={{
-                width: 'calc(100% - 20px)',
-                padding: '10px',
-                marginBottom: '10px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            />
-            <input
-              type="text"
-              placeholder="City"
-              value={newBeer.city}
-              onChange={(e) => setNewBeer({...newBeer, city: e.target.value})}
-              style={{
-                width: 'calc(100% - 20px)',
-                padding: '10px',
-                marginBottom: '10px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Establishment Type"
-              value={newBeer.establishment}
-              onChange={(e) => setNewBeer({...newBeer, establishment: e.target.value})}
-              style={{
-                width: 'calc(100% - 20px)',
-                padding: '10px',
-                marginBottom: '10px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            />
-            <button 
-              onClick={handleSaveBeer}
-              style={{
-                width: '100%',
-                padding: '10px 15px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              Save Beer
-            </button>
-          </div>
+          <AddBeerForm 
+            newBeer={newBeer} 
+            setNewBeer={setNewBeer} 
+            handleSaveBeer={handleSaveBeer} 
+          />
         )}
       </div>
 
