@@ -85,15 +85,6 @@ function App() {
     }
   };
 
-  const mapStyles = {
-    openstreetmap: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    stamenToner: "https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
-    stamenTerrain: "https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg",
-    stamenWatercolor: "https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.jpg",
-    cartoDBPositron: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-    cartoDBDarkMatter: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
-  };
-
   return (
     <div style={{ position: 'relative', height: '100vh', width: '100%' }}>
       {/* Logo (clickable) */}
