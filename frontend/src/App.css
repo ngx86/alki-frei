@@ -1,0 +1,109 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+  transition: transform 0.3s ease-in-out;
+}
+
+.app-logo:hover {
+  transform: rotate(30deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.search-input::placeholder {
+  color: #aaa;
+  font-style: italic;
+}
+
+.logo-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.app-logo {
+  width: 100px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.app-logo:hover {
+  transform: rotate(30deg);
+}
+
+.custom-beer-icon {
+  filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.5));
+  transition: filter 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.custom-beer-icon:hover {
+  filter: drop-shadow(4px 4px 3px rgba(0, 0, 0, 0.7));
+  transform: scale(1.1);
+}
+
+/* Fly-out menu styles */
+.fly-out-menu {
+  /* Styles are inline in the JSX, but you can move them here if you prefer */
+}
+
+.fly-out-menu h2, .fly-out-menu h3 {
+  margin-bottom: 10px;
+}
+
+.fly-out-menu p {
+  margin-bottom: 20px;
+}
+
+.fly-out-menu select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+/* Close button styles */
+.menu-close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.menu-close-button:hover {
+  color: #ff0000;
+}
